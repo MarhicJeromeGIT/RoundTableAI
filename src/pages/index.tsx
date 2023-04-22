@@ -15,7 +15,7 @@ export default function Home() {
       {/* this is a comment  */}
 
       <div className='h-full w-full'>
-        <h1 className="flex flex-auto mb-8 justify-center text-3xl font-bold underline text-[Cinzel]">
+        <h1 className="flex flex-auto pb-8 justify-center text-3xl font-bold underline text-[Cinzel]">
           Round Table AI
         </h1>
         <Chatbot />

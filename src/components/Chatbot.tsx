@@ -3,11 +3,26 @@ import React, { useState } from 'react';
 interface Message {
   id: number;
   text: string;
-  sender: 'user' | 'bot';
+  type: 'user' | 'bot' | 'narrator';
+  name?: string;
+  description?: string;
 }
 
 const Chatbot: React.FC = () => {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const narratorText = `The sun begins to set, casting a warm glow on the quaint village of Eldershire.
+  A refreshing breeze rustles through the trees, carrying with it the sweet scent of blooming flowers.
+  In the heart of the village, a bustling marketplace hums with life as merchants peddle their wares and villagers chatter amongst themselves.
+  Our hero, a fledgling adventurer with dreams of grandeur, enters the scene, eager to embark on their first great quest.`;
+
+  const npcText = `Well met, traveler! The name's Olaf. You look like a newcomer to these parts.
+  Tell me, what brings you to our humble village of Eldershire?`
+  
+  const initialMessages: Message[] = [
+    { id: 1, type: 'narrator', text: narratorText },
+    { id: 2, type: 'bot', text: npcText, name: 'Olaf', description: 'grizzled blacksmith, wiping sweat from his brow' },
+  ];
+
+  const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState('');
 
   const handleSendMessage = () => {
@@ -15,7 +30,7 @@ const Chatbot: React.FC = () => {
   
     setMessages((prevMessages) => [
       ...prevMessages,
-      { id: Date.now(), text: input, sender: 'user' },
+      { id: Date.now(), text: input, type: 'user' },
     ]);
     setInput('');
   
@@ -33,35 +48,67 @@ const Chatbot: React.FC = () => {
         setMessages((prevMessages) => {
           const lastMessage = prevMessages[prevMessages.length - 1];
   
-          if (lastMessage.sender === 'bot') {
+          if (lastMessage.type === 'bot') {
             const updatedBotMessage = {
               ...lastMessage,
               text: currentResponse,
             };
             return [...prevMessages.slice(0, -1), updatedBotMessage];
           } else {
-            return [...prevMessages, { id: Date.now(), text: currentResponse, sender: 'bot' }];
+            return [...prevMessages, { id: Date.now(), text: currentResponse, type: 'bot' }];
           }
         });
       }, 500 * index); // Adjust the delay as needed
     });
   };
+
+  const getMessageClass = (type: 'user' | 'bot' | 'narrator') => {
+    let bgColor;
+
+    switch (type) {
+      case 'user':
+        bgColor = 'bg-[rgba(95,158,160,0.8)] self-end';
+        break;
+      case 'bot':
+        bgColor = 'bg-[rgba(210,180,140,0.8)] self-start';
+        break;
+      case 'narrator':
+        bgColor = 'bg-[rgba(255,215,0,0.8)] self-center'; // Choose a different background color for the narrator
+        break;
+      default:
+        bgColor = '';
+    }
+
+    return `p-2 pl-4 pr-4 flex-none text-black break-words rounded-md overflow-x-scroll ${bgColor}`;
+  };
+
+  function renderBotInfo(message: Message) {
+    if (message.type === 'bot') {
+      return (
+        <>
+        {message.name && <strong>{message.name}</strong>}
+        {message.description && (
+          <span className="italic">({message.description})</span>
+        )}
+        </>
+      );
+    }
+    return null;
+  }
+
+  function renderMessage(message: Message) {
+    return (
+      <div key={message.id} className={getMessageClass(message.type)}>
+        <div>{renderBotInfo(message)}</div>
+        <div>{message.text}</div>
+      </div>
+    );
+  }
   
   return (
     <div className="flex flex-col h-5/6 bottom-0">
         <div className="flex flex-col h-full overflow-y-scroll p-4 space-y-4 bg-opacity-80 bg-[rgba(238,221,198,0.8)] rounded-md">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`p-2 pl-4 pr-4 flex-none text-black break-words rounded-md overflow-x-scroll ${
-                message.sender === 'user'
-                  ? 'bg-[rgba(95,158,160,0.8)] self-end'
-                  : 'bg-[rgba(210,180,140,0.8)] self-start'
-              }`}
-            >
-              {message.text}
-            </div>
-          ))}
+          {messages.map(renderMessage)}
         </div>
         <div className="flex items-center p-4 space-x-4 bg-opacity-60 bg-[rgba(64,38,33,0.8)] border-t-2 border-[rgba(64,38,33,0.8)]">
           <input

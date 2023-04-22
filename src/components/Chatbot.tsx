@@ -20,7 +20,7 @@ const Chatbot: React.FC = () => {
     setInput('');
   
     // Simulate streaming bot response
-    streamBotResponse('This is an example of a streamed bot response.');
+    streamBotResponse('This is an example of a streamed bot response, it`s quite long and exactly what you expected.');
   };  
   
   const streamBotResponse = (response: string) => {
@@ -48,13 +48,12 @@ const Chatbot: React.FC = () => {
   };
   
   return (
-    <div className="flex flex-col h-screen">
-      <div className="w-full h-full">
-        <div className="flex flex-col flex-1 p-4 h-96 overflow-y-scroll space-y-4 bg-opacity-80 bg-[rgba(238,221,198,0.8)] rounded-md">
+    <div className="flex flex-col h-5/6 bottom-0">
+        <div className="flex flex-col h-full overflow-y-scroll p-4 space-y-4 bg-opacity-80 bg-[rgba(238,221,198,0.8)] rounded-md">
           {messages.map((message) => (
             <div
               key={message.id}
-              className={`p-2 pl-4 pr-4 text-black break-words rounded-md ${
+              className={`p-2 pl-4 pr-4 flex-none text-black break-words rounded-md overflow-x-scroll ${
                 message.sender === 'user'
                   ? 'bg-[rgba(95,158,160,0.8)] self-end'
                   : 'bg-[rgba(210,180,140,0.8)] self-start'
@@ -79,7 +78,6 @@ const Chatbot: React.FC = () => {
             Send
           </button>
         </div>
-      </div>
     </div>
   );
 };

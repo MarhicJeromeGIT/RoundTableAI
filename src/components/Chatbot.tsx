@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import useSocket from '../hooks/useSocket';
 
 interface Message {
   id: number;
@@ -25,17 +26,22 @@ const Chatbot: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState('');
 
+  const socket = useSocket('http://localhost:3001');
+
   const handleSendMessage = () => {
     if (!input.trim()) return;
-  
+
     setMessages((prevMessages) => [
       ...prevMessages,
       { id: Date.now(), text: input, type: 'user' },
     ]);
     setInput('');
-  
+
+    // Send as socket message
+    sendMessage(input);
+
     // Simulate streaming bot response
-    streamBotResponse('This is an example of a streamed bot response, it`s quite long and exactly what you expected.');
+    // streamBotResponse('This is an example of a streamed bot response, it`s quite long and exactly what you expected.');
   };  
   
   const streamBotResponse = (response: string) => {
@@ -105,6 +111,33 @@ const Chatbot: React.FC = () => {
     );
   }
   
+  useEffect(() => {
+    console.log("use effect for socket")
+    if (!socket) return;
+
+    console.log("socket exists")
+
+    // Listen for incoming messages
+    socket.on('message', (message: string) => {
+      console.log("we got a message !")
+      console.log(message)
+
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { id: Date.now(), text: message, type: 'bot', name: 'Olaf', description: 'angry' },
+      ]);
+    });
+
+    return () => {
+      socket.off('message');
+    };
+  }, [socket]);
+
+  const sendMessage = (message: string) => {
+    if (!socket) return;
+    socket.emit('message', message);
+  };
+
   return (
     <div className="flex flex-col h-5/6 bottom-0">
         <div className="flex flex-col h-full overflow-y-scroll p-4 space-y-4 bg-opacity-80 bg-[rgba(238,221,198,0.8)] rounded-md">

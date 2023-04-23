@@ -25,6 +25,7 @@ const Chatbot: React.FC = () => {
 
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState('');
+  const [connectionError, setConnectionError] = useState<string | null>(null);
 
   const socket = useSocket('http://localhost:3001');
 
@@ -117,6 +118,11 @@ const Chatbot: React.FC = () => {
 
     console.log("socket exists")
 
+    // Handle successful connection
+    socket.on('connect', () => {
+      setConnectionError(null);
+    });
+    
     // Listen for incoming messages
     socket.on('message', (message: string) => {
       console.log("we got a message !")
@@ -128,8 +134,33 @@ const Chatbot: React.FC = () => {
       ]);
     });
 
+    // Handle connection error
+    socket.on('connect_error', (error: Error) => {
+      console.log(`Connection error: ${error.message}`);
+      setConnectionError(`Connection error: ${error.message}`);
+    });
+
+    // Handle connection timeout
+    socket.on('connect_timeout', () => {
+      setConnectionError('Connection timeout');
+    });
+
+    // Handle disconnection
+    socket.on('disconnect', (reason: string) => {
+      if (reason === 'io server disconnect') {
+        // The disconnection was initiated by the server
+        setConnectionError('Disconnected by server');
+      } else {
+        // The disconnection was initiated by the client
+        setConnectionError(`Disconnected: ${reason}`);
+      }
+    });
+
     return () => {
       socket.off('message');
+      socket.off('connect_error');
+      socket.off('connect_timeout');
+      socket.off('disconnect');
     };
   }, [socket]);
 
@@ -142,6 +173,14 @@ const Chatbot: React.FC = () => {
     <div className="flex flex-col h-5/6 bottom-0">
         <div className="flex flex-col h-full overflow-y-scroll p-4 space-y-4 bg-opacity-80 bg-[rgba(238,221,198,0.8)] rounded-md">
           {messages.map(renderMessage)}
+
+          { connectionError ? (
+            <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4" role="alert">
+              <p className="font-bold">Error</p>
+              <p>{connectionError}</p>
+            </div>
+           ) : null
+          }
         </div>
         <div className="flex items-center p-4 space-x-4 bg-opacity-60 bg-[rgba(64,38,33,0.8)] border-t-2 border-[rgba(64,38,33,0.8)]">
           <input

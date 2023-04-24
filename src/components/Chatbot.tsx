@@ -26,6 +26,7 @@ const Chatbot: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState('');
   const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [lastReceivedWord, setLastReceivedWord] = useState('');
 
   const socket = useSocket('http://localhost:3001');
 
@@ -40,33 +41,6 @@ const Chatbot: React.FC = () => {
 
     // Send as socket message
     sendMessage(input);
-
-    // Simulate streaming bot response
-    // streamBotResponse('This is an example of a streamed bot response, it`s quite long and exactly what you expected.');
-  };  
-  
-  const streamBotResponse = (response: string) => {
-    const words = response.split(' ');
-    let currentResponse = '';
-  
-    words.forEach((word, index) => {
-      setTimeout(() => {
-        currentResponse += `${word} `;
-        setMessages((prevMessages) => {
-          const lastMessage = prevMessages[prevMessages.length - 1];
-  
-          if (lastMessage.type === 'bot') {
-            const updatedBotMessage = {
-              ...lastMessage,
-              text: currentResponse,
-            };
-            return [...prevMessages.slice(0, -1), updatedBotMessage];
-          } else {
-            return [...prevMessages, { id: Date.now(), text: currentResponse, type: 'bot' }];
-          }
-        });
-      }, 500 * index); // Adjust the delay as needed
-    });
   };
 
   const getMessageClass = (type: 'user' | 'bot' | 'narrator') => {
@@ -124,15 +98,49 @@ const Chatbot: React.FC = () => {
     });
     
     // Listen for incoming messages
-    socket.on('message', (message: string) => {
-      console.log("we got a message !")
-      console.log(message)
+    // socket.on('message', (message: string) => {
+    //   console.log("we got a message !")
+    //   console.log(message)
 
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        { id: Date.now(), text: message, type: 'bot', name: 'Olaf', description: 'angry' },
-      ]);
+    //   setMessages((prevMessages) => [
+    //     ...prevMessages,
+    //     { id: Date.now(), text: message, type: 'bot', name: 'Olaf', description: 'angry' },
+    //   ]);
+    // });
+
+    socket.on('new_word', (data) => {
+      const word: string = data.word;
+      console.log("received word " + word)
+      setLastReceivedWord(word);
     });
+
+    // // Event listener for new words
+    // socket.on('new_word', (data) => {
+    //   console.log("messages so far")
+    //   console.log(messages)
+    //   console.log("received word " + data.word)
+    //   const word: string = data.word;
+      
+    //   // Check if the last message is of type 'bot'
+    //   setMessages((prevMessages) => {
+    //     // Check if the last message is of type 'bot'
+    //     const lastMessage = prevMessages[prevMessages.length - 1];
+    //     if (lastMessage && lastMessage.type === 'bot') {
+    //       // Update the last message's text
+    //       lastMessage.text += ' ' + word;
+    //       return [...prevMessages.slice(0, -1), lastMessage];
+    //     } else {
+    //       // Create a new message object and add it to the messages array
+    //       const newMessage = {
+    //         id: Date.now(),
+    //         text: word,
+    //         type: 'bot' as 'bot', // Ensure that the type is 'bot' and compatible with the Message interface
+    //         name: 'Bot',
+    //       };
+    //       return [...prevMessages, newMessage];
+    //     }
+    //   });
+    // });
 
     // Handle connection error
     socket.on('connect_error', (error: Error) => {
@@ -164,9 +172,39 @@ const Chatbot: React.FC = () => {
     };
   }, [socket]);
 
+  useEffect(() => {
+    if (!lastReceivedWord) {
+      return;
+    }
+  
+    setMessages((prevMessages) => {
+      // Check if the last message is of type 'bot'
+      const lastMessage = prevMessages[prevMessages.length - 1];
+      if (lastMessage && lastMessage.type === 'bot') {
+        // Update the last message's text without mutating the previous state
+        const updatedLastMessage = {
+          ...lastMessage,
+          text: lastMessage.text + ' ' + lastReceivedWord,
+        };
+        return [...prevMessages.slice(0, -1), updatedLastMessage];
+      } else {
+        // Create a new message object and add it to the messages array
+        const newMessage = {
+          id: Date.now(),
+          text: lastReceivedWord,
+          type: 'bot' as 'bot', // Ensure that the type is 'bot' and compatible with the Message interface
+          name: 'Bot',
+        };
+        return [...prevMessages, newMessage];
+      }
+    });
+  
+  }, [lastReceivedWord]);
+
   const sendMessage = (message: string) => {
     if (!socket) return;
-    socket.emit('message', message);
+    // socket.emit('message', message);
+    socket.emit('stream_text');
   };
 
   return (

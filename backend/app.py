@@ -1,12 +1,28 @@
 from flask import Flask
 from flask_cors import CORS
-from flask_socketio import SocketIO, send
+from flask_socketio import SocketIO, send, emit
 import eventlet
+
+from chatbot import conversation
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
+
+import time
+
+def generate_text():
+    words = ['This', 'is', 'an', 'example', 'of', 'streaming', 'text', 'word', 'by', 'word.']
+    for word in words:
+        yield word
+        eventlet.sleep(1)  # Simulate the time it takes to generate a word
+
+@socketio.on('stream_text')
+def stream_text():
+    print("starting to stream text")
+    for word in generate_text():
+        emit('new_word', {'word': word})
 
 def send_regular_messages():
     while True:
@@ -28,9 +44,10 @@ def handle_disconnect():
 def handle_message(msg):
     print(f"Received message: {msg}")
 
-    message = f"Did you just say {msg} ?!"
-    print("sending message")
-    socketio.send(message)
+    # message = f"Did you just say {msg} ?!"
+    answer = conversation.predict(input=msg)
+    print("answer : " + answer)
+    socketio.send(answer)
 
 if __name__ == '__main__':
     eventlet.wsgi.server(eventlet.listen(('localhost', 3001)), app)

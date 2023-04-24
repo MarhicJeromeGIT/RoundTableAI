@@ -16,7 +16,7 @@ def generate_text():
     words = ['This', 'is', 'an', 'example', 'of', 'streaming', 'text', 'word', 'by', 'word.']
     for word in words:
         yield word
-        eventlet.sleep(1)  # Simulate the time it takes to generate a word
+        eventlet.sleep(0.1)  # Simulate the time it takes to generate a word
 
 @socketio.on('stream_text')
 def stream_text():

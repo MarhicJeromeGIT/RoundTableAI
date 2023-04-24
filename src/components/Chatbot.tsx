@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import useSocket from '../hooks/useSocket';
 
 interface Message {
@@ -27,7 +27,7 @@ const Chatbot: React.FC = () => {
   const [input, setInput] = useState('');
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [lastReceivedWord, setLastReceivedWord] = useState('');
-
+  const messageListRef = useRef(null);
   const socket = useSocket('http://localhost:3001');
 
   const handleSendMessage = () => {
@@ -207,9 +207,18 @@ const Chatbot: React.FC = () => {
     socket.emit('stream_text');
   };
 
+  useEffect(() => {
+    if (messageListRef.current) {
+      messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
+    }
+  }, [messages]);
+
   return (
     <div className="flex flex-col h-5/6 bottom-0">
-        <div className="flex flex-col h-full overflow-y-scroll p-4 space-y-4 bg-opacity-80 bg-[rgba(238,221,198,0.8)] rounded-md">
+        <div
+          ref={messageListRef}
+          className="flex flex-col h-full overflow-y-scroll p-4 space-y-4 bg-opacity-80 bg-[rgba(238,221,198,0.8)] rounded-md"
+        >
           {messages.map(renderMessage)}
 
           { connectionError ? (

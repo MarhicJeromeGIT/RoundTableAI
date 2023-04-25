@@ -50,4 +50,4 @@ def handle_message(msg):
     socketio.send(answer)
 
 if __name__ == '__main__':
-    eventlet.wsgi.server(eventlet.listen(('localhost', 3001)), app)
+    eventlet.wsgi.server(eventlet.listen(('0.0.0.0', 3001)), app)

@@ -9,3 +9,8 @@ python3 app.py
 # in python console
 
 from chatbot import sllm
+
+
+# How to deploy
+
+bundle exec cap production deploy

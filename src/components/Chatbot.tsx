@@ -27,7 +27,7 @@ const Chatbot: React.FC = () => {
   const [input, setInput] = useState('');
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [lastReceivedWord, setLastReceivedWord] = useState('');
-  const messageListRef = useRef(null);
+  const messageListRef = useRef<HTMLDivElement>(null);
   const socket = useSocket('http://ec2-54-202-51-26.us-west-2.compute.amazonaws.com:3001');
 
   const handleSendMessage = () => {

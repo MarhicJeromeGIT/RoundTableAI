@@ -14,3 +14,7 @@ from chatbot import sllm
 # How to deploy
 
 bundle exec cap production deploy
+
+# run with gunicorn
+
+# python 3.8

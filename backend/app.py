@@ -2,6 +2,9 @@ from flask import Flask
 from flask_cors import CORS
 from flask_socketio import SocketIO, send, emit
 import eventlet
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 from chatbot import conversation
 
@@ -50,4 +53,4 @@ def handle_message(msg):
     socketio.send(answer)
 
 if __name__ == '__main__':
-    eventlet.wsgi.server(eventlet.listen(('0.0.0.0', 3001)), app)
+    eventlet.wsgi.server(eventlet.listen(('127.0.0.1', 3001)), app)

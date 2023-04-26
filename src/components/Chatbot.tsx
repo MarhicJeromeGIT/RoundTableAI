@@ -28,7 +28,7 @@ const Chatbot: React.FC = () => {
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [lastReceivedWord, setLastReceivedWord] = useState('');
   const messageListRef = useRef<HTMLDivElement>(null);
-  const socket = useSocket('http://ec2-54-202-51-26.us-west-2.compute.amazonaws.com:3001');
+  const socket = useSocket('https://roundtableai.jeromemarhic.com');
 
   const handleSendMessage = () => {
     if (!input.trim()) return;

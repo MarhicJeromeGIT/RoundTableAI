@@ -1,0 +1,14 @@
+[Unit]
+Description=RoundtableAI Backend
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/var/www/roundtableai-backend/current/backend
+ExecStart=/usr/bin/python3 app.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+

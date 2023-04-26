@@ -28,7 +28,8 @@ const Chatbot: React.FC = () => {
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [lastReceivedWord, setLastReceivedWord] = useState('');
   const messageListRef = useRef<HTMLDivElement>(null);
-  const socket = useSocket('https://roundtableai.jeromemarhic.com');
+  const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'NEXT_PUBLIC_SOCKET_URL not set';
+  const socket = useSocket(socketUrl);
 
   const handleSendMessage = () => {
     if (!input.trim()) return;
@@ -184,7 +185,7 @@ const Chatbot: React.FC = () => {
         // Update the last message's text without mutating the previous state
         const updatedLastMessage = {
           ...lastMessage,
-          text: lastMessage.text + ' ' + lastReceivedWord,
+          text: lastReceivedWord,
         };
         return [...prevMessages.slice(0, -1), updatedLastMessage];
       } else {
@@ -203,8 +204,7 @@ const Chatbot: React.FC = () => {
 
   const sendMessage = (message: string) => {
     if (!socket) return;
-    // socket.emit('message', message);
-    socket.emit('stream_text');
+    socket.emit('message', message);
   };
 
   useEffect(() => {

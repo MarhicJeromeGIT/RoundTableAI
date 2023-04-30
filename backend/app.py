@@ -87,6 +87,12 @@ def handle_connect():
 def handle_disconnect():
     print('Client disconnected')  
 
+# @socketio.on('generate_background_image')
+# def generate_background_image():
+#     url = 'https://images.nightcafe.studio/jobs/01rpW0BNf6m7gfqSzA3A/01rpW0BNf6m7gfqSzA3A.jpg?tr=w-1600,c-at_max'
+#     print("generating background image")
+#     emit('new_background_image', {'url': background_image_url})
+
 if __name__ == '__main__':
     # eventlet.wsgi.server(eventlet.listen(('127.0.0.1', 3001)), app)
     socketio.run(app, host='127.0.0.1', port=3001)

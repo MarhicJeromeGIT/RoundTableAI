@@ -57,3 +57,13 @@ def createConversation(callback):
 
   return conversation
 
+
+
+# Try with llama
+# Alpaca
+# from langchain.llms import LlamaCpp
+# llm = LlamaCpp(model_path="/home/jerome/Wovn/llama/llama.cpp/models/7B/ggml-model-q4_0.bin", streaming=True, verbose=True)
+
+# for chunk in llm.stream("Ask 'Hi, how are you?' like a pirate:'", stop=["'","\n"]):
+#   result = chunk["choices"][0]
+#   print(result["text"], end='', flush=True)

@@ -5,7 +5,9 @@ const useSocket = (url: string) => {
   const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
-    const socketIOClient = io(url);
+    const socketIOClient = io(url, {
+      timeout: 500,
+    });
     setSocket(socketIOClient);
 
     return () => {

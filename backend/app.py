@@ -42,7 +42,7 @@ conversation = createConversation(my_callback_handler)
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 CORS(app)
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins="*", ping_timeout=500)
 
 import time
 
@@ -55,9 +55,9 @@ def handle_message(message):
 def handle_connect():
     print('Client connected')
     # eventlet.spawn(send_regular_messages)
-    emit('new_message', { 'id': 1, 'type': 'narrator', 'text': conversation.memory.moving_summary_buffer })
+    # emit('new_message', { 'id': 1, 'type': 'narrator', 'text': conversation.memory.moving_summary_buffer })
     eventlet.sleep(0.1)
-    emit('new_message', { 'id': 2, 'type': 'bot', 'text': conversation.memory.chat_memory.messages[0].content })
+    # emit('new_message', { 'id': 2, 'type': 'bot', 'text': conversation.memory.chat_memory.messages[0].content })
     # socketio.send("hello from server")
 
 @socketio.on('disconnect')
@@ -73,3 +73,4 @@ def handle_disconnect():
 if __name__ == '__main__':
     # eventlet.wsgi.server(eventlet.listen(('127.0.0.1', 3001)), app)
     socketio.run(app, host='127.0.0.1', port=3001)
+    # app.run(host='0.0.0.0', port=3001, threaded=True, use_reloader=True)

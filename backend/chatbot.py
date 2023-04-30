@@ -4,11 +4,10 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 from langchain.chains import ConversationChain
-from langchain.llms import OpenAI
+from langchain.llms import OpenAI, LlamaCpp
 from langchain.prompts.prompt import PromptTemplate
 from langchain.memory import ConversationSummaryBufferMemory
 from langchain.callbacks.base import CallbackManager
-
 
 template = """
 You are an adventure Game Master (GM). The GM describes the game world and its inhabitants;
@@ -61,7 +60,23 @@ memory.chat_memory.add_ai_message(ai_message)
 memory.load_memory_variables(['history'])
 
 def createConversation(callback):
-  llm = OpenAI(temperature=0, verbose=True, streaming=True, callback_manager=CallbackManager([callback]))
+  # llm = OpenAI(temperature=0, verbose=True, streaming=True, callback_manager=CallbackManager([callback]))
+
+  # Try with llama
+  # Alpaca
+  # 
+  llm = LlamaCpp(
+    model_path="/home/jerome/Wovn/llama/llama.cpp/models/7B/ggml-model-q4_0.bin",
+    n_ctx=2048,
+    max_tokens=128,
+    streaming=True,
+    verbose=True,
+    callback_manager=CallbackManager([callback])
+  )
+
+  # for chunk in llm.stream("Ask 'Hi, how are you?' like a pirate:'", stop=["'","\n"]):
+  #   result = chunk["choices"][0]
+  #   print(result["text"], end='', flush=True)
 
   conversation = ConversationChain(
       llm=llm, 
@@ -76,11 +91,3 @@ if __name__ == "__main__":
   conversation = createConversation(None)
   print(conversation)
 
-# Try with llama
-# Alpaca
-# from langchain.llms import LlamaCpp
-# llm = LlamaCpp(model_path="/home/jerome/Wovn/llama/llama.cpp/models/7B/ggml-model-q4_0.bin", streaming=True, verbose=True)
-
-# for chunk in llm.stream("Ask 'Hi, how are you?' like a pirate:'", stop=["'","\n"]):
-#   result = chunk["choices"][0]
-#   print(result["text"], end='', flush=True)

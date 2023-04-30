@@ -42,7 +42,22 @@ summary_llm = OpenAI(temperature=0, verbose=False)
 memory = ConversationSummaryBufferMemory(llm=summary_llm, max_token_limit=500, prompt=custom_summary_prompt, ai_prefix="NPC")
 print(memory)
 
-memory.moving_summary_buffer = 'The player arrives in a village and meets a villager. The villager says "Hello, traveler. How can I help you?"'
+
+story_start = """
+The sun begins to set, casting a warm glow on the quaint village of Eldershire.
+A refreshing breeze rustles through the trees, carrying with it the sweet scent of blooming flowers.
+In the heart of the village, a bustling marketplace hums with life as merchants peddle their wares and villagers chatter amongst themselves.
+Our hero, a fledgling adventurer with dreams of grandeur, enters the scene, eager to embark on their first great quest.
+"""
+
+ai_message = """
+Well met, traveler! The name's Olaf. You look like a newcomer to these parts.
+Tell me, what brings you to our humble village of Eldershire?
+"""
+
+memory.moving_summary_buffer = story_start
+memory.chat_memory.add_ai_message(ai_message)
+
 memory.load_memory_variables(['history'])
 
 def createConversation(callback):
@@ -57,7 +72,9 @@ def createConversation(callback):
 
   return conversation
 
-
+if __name__ == "__main__":
+  conversation = createConversation(None)
+  print(conversation)
 
 # Try with llama
 # Alpaca

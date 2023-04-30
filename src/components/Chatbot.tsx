@@ -1,32 +1,17 @@
 import React, { useEffect, useState, useRef } from 'react';
 import useSocket from '../hooks/useSocket';
-
-interface Message {
-  id: number;
-  text: string;
-  type: 'user' | 'bot' | 'narrator';
-  name?: string;
-  description?: string;
-}
+import Avatar from './Avatar';
+import { Message } from '../types/message';
+import ChatMessage from './ChatMessage';
 
 const Chatbot: React.FC = () => {
-  const narratorText = `The sun begins to set, casting a warm glow on the quaint village of Eldershire.
-  A refreshing breeze rustles through the trees, carrying with it the sweet scent of blooming flowers.
-  In the heart of the village, a bustling marketplace hums with life as merchants peddle their wares and villagers chatter amongst themselves.
-  Our hero, a fledgling adventurer with dreams of grandeur, enters the scene, eager to embark on their first great quest.`;
-
-  const npcText = `Well met, traveler! The name's Olaf. You look like a newcomer to these parts.
-  Tell me, what brings you to our humble village of Eldershire?`
   
-  const initialMessages: Message[] = [
-    { id: 1, type: 'narrator', text: narratorText },
-    { id: 2, type: 'bot', text: npcText, name: 'Olaf', description: 'grizzled blacksmith, wiping sweat from his brow' },
-  ];
+  const initialMessages: Message[] = [];
 
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState('');
   const [connectionError, setConnectionError] = useState<string | null>(null);
-  const [lastReceivedWord, setLastReceivedWord] = useState('');
+  const [lastReceivedMessage, setLastReceivedMessage] = useState<Message>();
   const messageListRef = useRef<HTMLDivElement>(null);
   const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'NEXT_PUBLIC_SOCKET_URL not set';
   const socket = useSocket(socketUrl);
@@ -43,49 +28,6 @@ const Chatbot: React.FC = () => {
     // Send as socket message
     sendMessage(input);
   };
-
-  const getMessageClass = (type: 'user' | 'bot' | 'narrator') => {
-    let bgColor;
-
-    switch (type) {
-      case 'user':
-        bgColor = 'bg-[rgba(95,158,160,0.8)] self-end';
-        break;
-      case 'bot':
-        bgColor = 'bg-[rgba(210,180,140,0.8)] self-start';
-        break;
-      case 'narrator':
-        bgColor = 'bg-[rgba(255,215,0,0.8)] self-center'; // Choose a different background color for the narrator
-        break;
-      default:
-        bgColor = '';
-    }
-
-    return `p-2 pl-4 pr-4 flex-none text-black break-words rounded-md overflow-x-scroll ${bgColor}`;
-  };
-
-  function renderBotInfo(message: Message) {
-    if (message.type === 'bot') {
-      return (
-        <>
-        {message.name && <strong>{message.name}</strong>}
-        {message.description && (
-          <span className="italic">({message.description})</span>
-        )}
-        </>
-      );
-    }
-    return null;
-  }
-
-  function renderMessage(message: Message) {
-    return (
-      <div key={message.id} className={getMessageClass(message.type)}>
-        <div>{renderBotInfo(message)}</div>
-        <div>{message.text}</div>
-      </div>
-    );
-  }
   
   useEffect(() => {
     console.log("use effect for socket")
@@ -97,51 +39,12 @@ const Chatbot: React.FC = () => {
     socket.on('connect', () => {
       setConnectionError(null);
     });
-    
-    // Listen for incoming messages
-    // socket.on('message', (message: string) => {
-    //   console.log("we got a message !")
-    //   console.log(message)
 
-    //   setMessages((prevMessages) => [
-    //     ...prevMessages,
-    //     { id: Date.now(), text: message, type: 'bot', name: 'Olaf', description: 'angry' },
-    //   ]);
-    // });
-
-    socket.on('new_word', (data) => {
-      const word: string = data.word;
-      console.log("received word " + word)
-      setLastReceivedWord(word);
+    socket.on('new_message', (message: Message) => {
+      console.log("received message ")
+      console.log(message)
+      setLastReceivedMessage(message);
     });
-
-    // // Event listener for new words
-    // socket.on('new_word', (data) => {
-    //   console.log("messages so far")
-    //   console.log(messages)
-    //   console.log("received word " + data.word)
-    //   const word: string = data.word;
-      
-    //   // Check if the last message is of type 'bot'
-    //   setMessages((prevMessages) => {
-    //     // Check if the last message is of type 'bot'
-    //     const lastMessage = prevMessages[prevMessages.length - 1];
-    //     if (lastMessage && lastMessage.type === 'bot') {
-    //       // Update the last message's text
-    //       lastMessage.text += ' ' + word;
-    //       return [...prevMessages.slice(0, -1), lastMessage];
-    //     } else {
-    //       // Create a new message object and add it to the messages array
-    //       const newMessage = {
-    //         id: Date.now(),
-    //         text: word,
-    //         type: 'bot' as 'bot', // Ensure that the type is 'bot' and compatible with the Message interface
-    //         name: 'Bot',
-    //       };
-    //       return [...prevMessages, newMessage];
-    //     }
-    //   });
-    // });
 
     // Handle connection error
     socket.on('connect_error', (error: Error) => {
@@ -174,33 +77,21 @@ const Chatbot: React.FC = () => {
   }, [socket]);
 
   useEffect(() => {
-    if (!lastReceivedWord) {
+    if (!lastReceivedMessage) {
       return;
     }
   
     setMessages((prevMessages) => {
       // Check if the last message is of type 'bot'
       const lastMessage = prevMessages[prevMessages.length - 1];
-      if (lastMessage && lastMessage.type === 'bot') {
-        // Update the last message's text without mutating the previous state
-        const updatedLastMessage = {
-          ...lastMessage,
-          text: lastReceivedWord,
-        };
-        return [...prevMessages.slice(0, -1), updatedLastMessage];
+      if (lastMessage && lastMessage['id'] == lastReceivedMessage.id) {
+        return [...prevMessages.slice(0, -1), lastReceivedMessage];
       } else {
-        // Create a new message object and add it to the messages array
-        const newMessage = {
-          id: Date.now(),
-          text: lastReceivedWord,
-          type: 'bot' as 'bot', // Ensure that the type is 'bot' and compatible with the Message interface
-          name: 'Bot',
-        };
-        return [...prevMessages, newMessage];
+        return [...prevMessages, lastReceivedMessage];
       }
     });
   
-  }, [lastReceivedWord]);
+  }, [lastReceivedMessage]);
 
   const sendMessage = (message: string) => {
     if (!socket) return;
@@ -219,7 +110,7 @@ const Chatbot: React.FC = () => {
           ref={messageListRef}
           className="flex flex-col h-full overflow-y-scroll p-4 space-y-4 bg-opacity-80 bg-[rgba(238,221,198,0.8)] rounded-md"
         >
-          {messages.map(renderMessage)}
+          {messages.map((message) => <ChatMessage key={message.id} message={message} />)}
 
           { connectionError ? (
             <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4" role="alert">
